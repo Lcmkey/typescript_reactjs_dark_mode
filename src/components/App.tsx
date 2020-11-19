@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, ReactElement } from "react";
 import styled from "@emotion/styled";
 import { useTheme } from "./../contexts/ThemeContext";
 import { themeContentInterface } from "./../styles/theme";
@@ -26,17 +26,43 @@ const Wrapper = styled.div<StyleProps>`
   }
 `;
 
+// interface Props {
+//   children: JSX.Element[] | JSX.Element
+// }
+
 const App: FC = () => {
   const themeState = useTheme();
 
-  return (
-    <Wrapper>
-      <h1>Dark Mode example</h1>
+  /**
+   * Title
+   */
+  const renderTitle = (): ReactElement => {
+    const content: string = themeState.dark ? "DarkMode" : "Light Mode";
+
+    return <h1>{content}</h1>;
+  }
+
+  /**
+   * Content
+   */
+
+  const renderContent = (): ReactElement => {
+    return (
       <div>
         <button onClick={() => themeState.toggle()}>
           {themeState.dark ? "Switch to Light Mode" : "Switch to Dark Mode"}
         </button>
       </div>
+    );
+  }
+
+  return (
+    <Wrapper>
+      {/* Title */}
+      {renderTitle()}
+
+      {/* Content */}
+      {renderContent()}
     </Wrapper>
   );
 };

@@ -1,7 +1,12 @@
-import React, { FC, createContext, useContext, useEffect, useState } from "react";
-import {ThemeProvider　as EmotionThemeProvider　} from "@emotion/react";
+import React, { ReactElement, Context, Dispatch, SetStateAction, createContext, useContext, useEffect, useState } from "react";
+import { ThemeProvider as EmotionThemeProvider } from "@emotion/react";
 import theme, { themeContentInterface } from "./../styles/theme";
 
+interface themeProviderProps {
+  // children: ReactNode | ReactChild | ReactChildren;
+  children: ReactElement | ReactElement[]
+  // children: JSX.Element
+}
 
 interface themeState {
   dark: boolean;
@@ -18,22 +23,19 @@ const defaultContextData: defaultContextDataInterface = {
   toggle: () => { }
 };
 
-const ThemeContext: React.Context<defaultContextDataInterface> = createContext(defaultContextData);
-/**
- * Return Type??????????
- */
-const useTheme = () => useContext(ThemeContext);
+const ThemeContext: Context<defaultContextDataInterface> = createContext<defaultContextDataInterface>(defaultContextData);
 
-const useEffectDarkMode = (): [themeState, React.Dispatch<React.SetStateAction<themeState>>] => {
+const useTheme = (): defaultContextDataInterface => useContext<defaultContextDataInterface>(ThemeContext);
+
+const useEffectDarkMode = (): [themeState, Dispatch<SetStateAction<themeState>>] => {
   const [themeState, setThemeState] = useState<themeState>({
     dark: false,
     hasThemeMounted: false
   });
 
   useEffect(() => {
-    const lsDark = localStorage.getItem("mode") === "Dark";
+    const lsDark: boolean = localStorage.getItem("mode") === "Dark";
     console.log(localStorage.getItem("mode"));
-    
 
     setThemeState({ ...themeState, dark: lsDark, hasThemeMounted: true });
   }, []);
@@ -41,28 +43,30 @@ const useEffectDarkMode = (): [themeState, React.Dispatch<React.SetStateAction<t
   return [themeState, setThemeState];
 };
 
-const ThemeProvider: FC = ({ children }) => {
-  const [themeState, setThemeState] = useEffectDarkMode() as [themeState, React.Dispatch<React.SetStateAction<themeState>>];
-
-  if (!themeState.hasThemeMounted) {
-    return <div />;
-  }
+const ThemeProvider = ({ children }: themeProviderProps): ReactElement => {
+  const [themeState, setThemeState]: [themeState, Dispatch<SetStateAction<themeState>>] = useEffectDarkMode();
 
   const toggle = (): void => {
     const mode: string = themeState.dark ? "Light" : "Dark";
-    
+
     localStorage.setItem("mode", mode);
 
     setThemeState({ ...themeState, dark: !themeState.dark });
   };
 
   const computedTheme: themeContentInterface = themeState.dark ? theme("Dark")! : theme("Light")!;
-  
+
+  const { dark, hasThemeMounted } = themeState;
+
+  if (!hasThemeMounted) {
+    return <div />;
+  }
+
   return (
     <EmotionThemeProvider theme={computedTheme}>
       <ThemeContext.Provider
         value={{
-          dark: themeState.dark,
+          dark,
           toggle
         }}
       >
